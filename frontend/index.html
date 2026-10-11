@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoodCompass — AI Mood-Aware Place Recommendations</title>
+    <meta name="description" content="MoodCompass uses AI to detect your mood from a webcam image and recommends nearby places based on your chosen activity.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 1: LANDING / HERO                                         -->
+    <!-- ================================================================= -->
+    <section id="hero" class="section hero">
+        <div class="hero__bg-orbs">
+            <div class="orb orb--1"></div>
+            <div class="orb orb--2"></div>
+            <div class="orb orb--3"></div>
+        </div>
+
+        <div class="hero__content">
+            <div class="hero__badge">
+                <span class="hero__badge-dot"></span>
+                AI-Powered
+            </div>
+
+            <h1 class="hero__title">
+                <span class="hero__title-icon">🧭</span>
+                Mood<span class="hero__title-accent">Compass</span>
+            </h1>
+
+            <p class="hero__subtitle">
+                AI-Powered Mood-Aware Place Recommendation System
+            </p>
+
+            <p class="hero__description">
+                Capture your mood through your webcam, choose an activity,
+                and discover the perfect places near you — personalized to
+                how you feel right now.
+            </p>
+
+            <button id="btn-start" class="btn btn--primary btn--lg" type="button">
+                <span class="btn__icon">🚀</span>
+                Get Started
+                <span class="btn__shine"></span>
+            </button>
+
+            <div class="hero__features">
+                <div class="hero__feature">
+                    <span class="hero__feature-icon">📸</span>
+                    <span>Webcam Capture</span>
+                </div>
+                <div class="hero__feature">
+                    <span class="hero__feature-icon">🤖</span>
+                    <span>AI Detection</span>
+                </div>
+                <div class="hero__feature">
+                    <span class="hero__feature-icon">📍</span>
+                    <span>Local Places</span>
+                </div>
+                <div class="hero__feature">
+                    <span class="hero__feature-icon">🗺️</span>
+                    <span>Navigation</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 2: WEBCAM CAPTURE                                         -->
+    <!-- ================================================================= -->
+    <section id="camera" class="section camera hidden">
+        <div class="section__header">
+            <h2 class="section__title">
+                <span class="section__step">1</span>
+                Capture Your Mood
+            </h2>
+            <p class="section__subtitle">
+                Position your face in the frame and click capture when ready
+            </p>
+        </div>
+
+        <div class="camera__container glass-card">
+            <!-- Live video feed -->
+            <div class="camera__viewport">
+                <video id="webcam-video" class="camera__video" autoplay playsinline muted></video>
+                <canvas id="capture-canvas" class="camera__canvas"></canvas>
+                <img id="captured-image" class="camera__preview" alt="Captured photo" />
+
+                <!-- Scan overlay -->
+                <div id="camera-scan" class="camera__scan-line hidden"></div>
+
+                <!-- Face guide overlay -->
+                <div class="camera__guide">
+                    <svg viewBox="0 0 200 200" class="camera__guide-svg">
+                        <ellipse cx="100" cy="95" rx="65" ry="80"
+                            fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-dasharray="8 6" opacity="0.4" />
+                    </svg>
+                </div>
+
+                <!-- Shutter flash -->
+                <div id="shutter-flash" class="camera__flash hidden"></div>
+
+                <!-- Status overlays -->
+                <div id="camera-status" class="camera__status hidden">
+                    <div class="spinner"></div>
+                    <span id="camera-status-text">Initializing camera…</span>
+                </div>
+            </div>
+
+            <!-- Camera controls -->
+            <div class="camera__controls">
+                <button id="btn-capture" class="btn btn--capture" type="button" disabled>
+                    <span class="btn-capture__ring"></span>
+                    <span class="btn-capture__inner"></span>
+                </button>
+                <button id="btn-retake" class="btn btn--secondary hidden" type="button">
+                    🔄 Retake
+                </button>
+            </div>
+        </div>
+
+        <!-- Error display for camera issues -->
+        <div id="camera-error" class="error-banner hidden">
+            <span class="error-banner__icon">⚠️</span>
+            <span id="camera-error-text"></span>
+        </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 3: EMOTION RESULT                                         -->
+    <!-- ================================================================= -->
+    <section id="emotion" class="section emotion hidden">
+        <div class="section__header">
+            <h2 class="section__title">
+                <span class="section__step">2</span>
+                Your Mood
+            </h2>
+            <p class="section__subtitle">
+                Here's what our AI detected
+            </p>
+        </div>
+
+        <div class="emotion__card glass-card">
+            <div class="emotion__main">
+                <span id="emotion-emoji" class="emotion__emoji">😊</span>
+                <div class="emotion__info">
+                    <h3 id="emotion-label" class="emotion__label">Happy</h3>
+                    <div class="emotion__confidence-bar">
+                        <div id="emotion-confidence-fill" class="emotion__confidence-fill" style="width: 0%"></div>
+                    </div>
+                    <span id="emotion-confidence-text" class="emotion__confidence-text">92%</span>
+                </div>
+            </div>
+
+            <!-- Low-confidence secondary emotions -->
+            <div id="emotion-secondary" class="emotion__secondary hidden">
+                <p class="emotion__secondary-label">We also detected:</p>
+                <div id="emotion-secondary-list" class="emotion__secondary-list"></div>
+            </div>
+
+            <!-- Full breakdown (collapsible) -->
+            <details class="emotion__details">
+                <summary class="emotion__details-toggle">View full breakdown</summary>
+                <div id="emotion-breakdown" class="emotion__breakdown"></div>
+            </details>
+        </div>
+
+        <!-- Mood message -->
+        <p id="mood-message" class="emotion__message"></p>
+
+        <!-- Action buttons -->
+        <div class="emotion__actions">
+            <button id="btn-continue" class="btn btn--primary" type="button">
+                Continue to Activities
+                <span class="btn__shine"></span>
+            </button>
+            <button id="btn-retake-emotion" class="btn btn--outline btn--sm" type="button">
+                📸 Retake Photo
+            </button>
+        </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 4: ACTIVITY SELECTION                                     -->
+    <!-- ================================================================= -->
+    <section id="activity" class="section activity hidden">
+        <div class="section__header">
+            <h2 class="section__title">
+                <span class="section__step">3</span>
+                What would you like to do?
+            </h2>
+            <p class="section__subtitle">
+                Choose an activity and we'll find the best places near you
+            </p>
+        </div>
+
+        <div class="activity__grid">
+            <button class="activity__btn glass-card" data-activity="eat" type="button">
+                <span class="activity__icon">🍔</span>
+                <span class="activity__name">Eat</span>
+                <span class="activity__desc">Restaurants, cafes & bakeries</span>
+            </button>
+
+            <button class="activity__btn glass-card" data-activity="chill" type="button">
+                <span class="activity__icon">☕</span>
+                <span class="activity__name">Chill</span>
+                <span class="activity__desc">Cafes, libraries & spas</span>
+            </button>
+
+            <button class="activity__btn glass-card" data-activity="relax" type="button">
+                <span class="activity__icon">🌳</span>
+                <span class="activity__name">Relax</span>
+                <span class="activity__desc">Parks, gardens & attractions</span>
+            </button>
+
+            <button class="activity__btn glass-card" data-activity="entertainment" type="button">
+                <span class="activity__icon">🎬</span>
+                <span class="activity__name">Entertainment</span>
+                <span class="activity__desc">Movies, arcades & nightlife</span>
+            </button>
+
+            <button class="activity__btn glass-card" data-activity="exercise" type="button">
+                <span class="activity__icon">🏋️</span>
+                <span class="activity__name">Exercise</span>
+                <span class="activity__desc">Gyms, stadiums & sports</span>
+            </button>
+
+            <button class="activity__btn glass-card" data-activity="shopping" type="button">
+                <span class="activity__icon">🛍️</span>
+                <span class="activity__name">Shopping</span>
+                <span class="activity__desc">Malls, stores & boutiques</span>
+            </button>
+        </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 5: LOADING / LOCATION                                     -->
+    <!-- ================================================================= -->
+    <section id="loading" class="section loading hidden">
+        <div class="loading__card glass-card">
+            <div class="loading__spinner-container">
+                <div class="spinner spinner--lg"></div>
+            </div>
+            <h3 id="loading-title" class="loading__title">Finding places near you…</h3>
+            <p id="loading-subtitle" class="loading__subtitle">Retrieving your location</p>
+
+            <div class="loading__steps">
+                <div id="step-location" class="loading__step">
+                    <span class="loading__step-icon">📍</span>
+                    <span class="loading__step-text">Getting location</span>
+                    <span class="loading__step-status">⏳</span>
+                </div>
+                <div id="step-search" class="loading__step">
+                    <span class="loading__step-icon">🔍</span>
+                    <span class="loading__step-text">Searching places</span>
+                    <span class="loading__step-status">⏳</span>
+                </div>
+                <div id="step-results" class="loading__step">
+                    <span class="loading__step-icon">✨</span>
+                    <span class="loading__step-text">Preparing results</span>
+                    <span class="loading__step-status">⏳</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error display for location / search issues -->
+        <div id="loading-error" class="error-banner hidden">
+            <span class="error-banner__icon">⚠️</span>
+            <span id="loading-error-text"></span>
+            <button id="btn-retry" class="btn btn--secondary btn--sm" type="button">Retry</button>
+        </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- SECTION 6: RECOMMENDATIONS                                        -->
+    <!-- ================================================================= -->
+    <section id="results" class="section results hidden">
+        <div class="section__header">
+            <h2 class="section__title">
+                <span class="section__step">4</span>
+                <span id="results-title">Recommended Places</span>
+            </h2>
+            <p id="results-subtitle" class="section__subtitle">
+                Here are the best places near you
+            </p>
+        </div>
+
+        <div id="results-grid" class="results__grid">
+            <!-- Place cards will be injected by JavaScript -->
+        </div>
+
+        <!-- No results fallback -->
+        <div id="no-results" class="results__empty hidden">
+            <span class="results__empty-icon">🔍</span>
+            <h3>No places found</h3>
+            <p>We couldn't find matching places within 5 km. Try a different activity.</p>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="results__actions">
+            <button id="btn-change-activity" class="btn btn--secondary" type="button">
+                🔄 Change Activity
+            </button>
+            <button id="btn-start-over" class="btn btn--outline" type="button">
+                🏠 Start Over
+            </button>
+        </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TOAST NOTIFICATIONS                                               -->
+    <!-- ================================================================= -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Script -->
+    <script src="script.js"></script>
+</body>
+</html>
